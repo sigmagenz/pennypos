@@ -5,6 +5,7 @@ namespace App\Http\Controllers\UserManagement;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
@@ -15,8 +16,10 @@ class UserController extends Controller
      */
     public function index()
     {
-        // Fetch users from the model 
-        $users = User::all();
+        // Fetch users from the model except the authenticated user
+        $users = User::where('id', '!=', Auth::id())
+            ->latest()
+            ->get(['id', 'name', 'email', 'created_at']);
 
         // Return a view or Inertia response with the users
         return Inertia::render('users/index', [
@@ -66,32 +69,84 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(User $user)
     {
-        //
+        return Inertia::render('users/show', [
+            'user' => $user->only(['id', 'name', 'email', 'created_at']),
+        ]);
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit(User $user)
     {
-        //
+        return Inertia::render('users/edit', [
+            'user' => $user->only(['id', 'name', 'email']),
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, User $user)
     {
-        //
+        $validatedData = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+        ]);
+
+        try {
+            $user->update($validatedData);
+
+            return redirect()
+                ->route('users.index')
+                ->with('success', 'User updated successfully.');
+        } catch (\Exception $e) {
+            Log::error('User update failed', [
+                'error' => $e->getMessage(),
+                'user_id' => $user->id,
+            ]);
+
+            return back()
+                ->withInput()
+                ->withErrors(['error' => 'Failed to update user. Please try again.']);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(User $user)
     {
-        //
+        try {
+            // Get the authenticated user ID safely
+            $authenticatedUser = Auth::user();
+            $deletedBy = $authenticatedUser ? $authenticatedUser->id : 'system';
+
+            // Log the deletion for audit purposes
+            Log::info('User deleted', [
+                'user_id' => $user->id,
+                'user_name' => $user->name,
+                'user_email' => $user->email,
+                'deleted_by' => $deletedBy,
+                'deleted_at' => now(),
+            ]);
+
+            $user->delete();
+
+            return redirect()
+                ->route('users.index')
+                ->with('success', 'User deleted successfully.');
+        } catch (\Exception $e) {
+            Log::error('User deletion failed', [
+                'error' => $e->getMessage(),
+                'user_id' => $user->id,
+                'stack_trace' => $e->getTraceAsString(),
+            ]);
+
+            return back()
+                ->withErrors(['error' => 'Failed to delete user. Please try again.']);
+        }
     }
 }

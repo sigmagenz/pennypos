@@ -4,6 +4,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 import DetailUserDialog from './components/detail-user-dialog';
+import DeleteUserDialog from './components/delete-user-dialog';
 
 interface IUserTypes {
   id: string;
@@ -21,11 +22,31 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Index({ users }: { users: IUserTypes[] }) {
   const [showUserDetailDialog, setShowUserDetailDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedUser, setSelectedUser] = useState<IUserTypes | null>(null);
 
   const openUserDetailDialog = (user: IUserTypes) => {
     setSelectedUser(user);
     setShowUserDetailDialog(true);
+  };
+
+  const openDeleteDialog = (user: IUserTypes) => {
+    setSelectedUser(user);
+    setShowDeleteDialog(true);
+  };
+
+  const handleDeleteUser = () => {
+    if (selectedUser) {
+      router.delete(route('users.destroy', selectedUser.id), {
+        onSuccess: () => {
+          setShowDeleteDialog(false);
+          setSelectedUser(null);
+        },
+        onError: (errors) => {
+          console.error('Delete failed:', errors);
+        },
+      });
+    }
   };
 
   return (
@@ -95,7 +116,7 @@ export default function Index({ users }: { users: IUserTypes[] }) {
                 <tbody className="divide-y divide-neutral-200 bg-white dark:divide-neutral-700 dark:bg-neutral-900">
                   {users.map((user) => (
                     <tr key={user.id} className="transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800">
-                      <td className="px-6 py-4 text-sm whitespace-nowrap text-neutral-900 dark:text-neutral-100">{user.id}</td>
+                      <td className="px-6 py-4 text-sm whitespace-nowrap text-neutral-900 dark:text-neutral-100">{user.id}.</td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-neutral-900 dark:text-neutral-100">{user.name}</div>
                       </td>
@@ -107,10 +128,16 @@ export default function Index({ users }: { users: IUserTypes[] }) {
                       </td>
                       <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
                         <div className="flex space-x-2">
-                          <Button onClick={() => openUserDetailDialog(user)} className="text-indigo-600 transition-colors hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
+                          <button
+                            onClick={() => openUserDetailDialog(user)}
+                            className="text-blue-600 transition-colors hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                          >
                             View
-                          </Button>
-                          <button className="text-red-600 transition-colors hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
+                          </button>
+                          <button
+                            onClick={() => openDeleteDialog(user)}
+                            className="text-red-600 transition-colors hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                          >
                             Delete
                           </button>
                         </div>
@@ -135,13 +162,18 @@ export default function Index({ users }: { users: IUserTypes[] }) {
                         </p>
                       </div>
                       <div className="flex flex-col space-y-1">
-                        <Button
+                        <button
                           onClick={() => openUserDetailDialog(user)}
-                          className="text-xs text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                          className="text-xs text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
                         >
                           View
-                        </Button>
-                        <button className="text-xs text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Delete</button>
+                        </button>
+                        <button
+                          onClick={() => openDeleteDialog(user)}
+                          className="text-xs text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                        >
+                          Delete
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -151,7 +183,11 @@ export default function Index({ users }: { users: IUserTypes[] }) {
           </div>
         </div>
       </div>
+
+      {/* Dialogs */}
       <DetailUserDialog open={showUserDetailDialog} onOpenChange={setShowUserDetailDialog} user={selectedUser} />
+
+      <DeleteUserDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog} user={selectedUser} onConfirm={handleDeleteUser} />
     </AppLayout>
   );
 }
