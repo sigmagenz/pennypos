@@ -3,10 +3,10 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
-import CreateFormDialog from './components/create-form-dialog';
+import DetailUserDialog from './components/detail-user-dialog';
 
 interface IUserTypes {
-  id: number;
+  id: string;
   name: string;
   email: string;
   created_at: string;
@@ -20,11 +20,14 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function Index({ users }: { users: IUserTypes[] }) {
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showUserDetailDialog, setShowUserDetailDialog] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<IUserTypes | null>(null);
 
-  const openCreateFormDialog = () => {
-    setShowCreateDialog(true);
+  const openUserDetailDialog = (user: IUserTypes) => {
+    setSelectedUser(user);
+    setShowUserDetailDialog(true);
   };
+
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Users" />
@@ -104,9 +107,9 @@ export default function Index({ users }: { users: IUserTypes[] }) {
                       </td>
                       <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
                         <div className="flex space-x-2">
-                          <button className="text-indigo-600 transition-colors hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
-                            Edit
-                          </button>
+                          <Button onClick={() => openUserDetailDialog(user)} className="text-indigo-600 transition-colors hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
+                            View
+                          </Button>
                           <button className="text-red-600 transition-colors hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
                             Delete
                           </button>
@@ -132,9 +135,12 @@ export default function Index({ users }: { users: IUserTypes[] }) {
                         </p>
                       </div>
                       <div className="flex flex-col space-y-1">
-                        <button className="text-xs text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
-                          Edit
-                        </button>
+                        <Button
+                          onClick={() => openUserDetailDialog(user)}
+                          className="text-xs text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                        >
+                          View
+                        </Button>
                         <button className="text-xs text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">Delete</button>
                       </div>
                     </div>
@@ -145,7 +151,7 @@ export default function Index({ users }: { users: IUserTypes[] }) {
           </div>
         </div>
       </div>
-      <CreateFormDialog open={showCreateDialog} onOpenChange={setShowCreateDialog} />
+      <DetailUserDialog open={showUserDetailDialog} onOpenChange={setShowUserDetailDialog} user={selectedUser} />
     </AppLayout>
   );
 }
