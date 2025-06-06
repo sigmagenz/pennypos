@@ -19,7 +19,7 @@ class UserController extends Controller
         // Fetch users from the model except the authenticated user
         $users = User::where('id', '!=', Auth::id())
             ->latest()
-            ->get(['id', 'name', 'email', 'created_at']);
+            ->get(['id', 'name', 'username', 'phone', 'email', 'created_at', 'updated_at']);
 
         // Return a view or Inertia response with the users
         return Inertia::render('users/index', [
@@ -43,10 +43,15 @@ class UserController extends Controller
         // Validate the request data
         $validatedData = $request->validate([
             'name' => 'required|string|max:60',
+            'username' => 'required|string|max:60|unique:users',
+            'phone' => 'nullable|string|max:20|unique:users',
             'email' => 'required|string|email|max:60|unique:users',
             'password' => 'required|string|min:6|confirmed',
         ], [
             'name.required' => 'Name is required.',
+            'username.required' => 'Username is required.',
+            'username.unique' => 'Username has already been taken.',
+            'phone.unique' => 'Phone number has already been taken.',
             'email.required' => 'Email is required.',
             'email.email' => 'Email must be a valid email address.',
             'email.unique' => 'Email has already been taken.',
@@ -58,6 +63,8 @@ class UserController extends Controller
         // Create a new user
         User::create([
             'name' => $validatedData['name'],
+            'username' => $validatedData['username'],
+            'phone' => $validatedData['phone'],
             'email' => $validatedData['email'],
             'password' => bcrypt($validatedData['password']),
         ]);
@@ -72,7 +79,7 @@ class UserController extends Controller
     public function show(User $user)
     {
         return Inertia::render('users/show', [
-            'user' => $user->only(['id', 'name', 'email', 'created_at']),
+            'user' => $user->only(['id', 'name', 'username', 'phone', 'email', 'created_at', 'updated_at']),
         ]);
     }
 
@@ -81,8 +88,8 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
-        return Inertia::render('users/edit', [
-            'user' => $user->only(['id', 'name', 'email']),
+        return Inertia::render('users/edit-user', [
+            'user' => $user->only(['id', 'name', 'username', 'phone', 'email', 'created_at', 'updated_at']),
         ]);
     }
 
@@ -93,7 +100,17 @@ class UserController extends Controller
     {
         $validatedData = $request->validate([
             'name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'max:255', 'unique:users,username,' . $user->id],
+            'phone' => ['nullable', 'string', 'max:20', 'unique:users,phone,' . $user->id],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+        ], [
+            'name.required' => 'Name is required.',
+            'username.required' => 'Username is required.',
+            'username.unique' => 'Username has already been taken.',
+            'phone.unique' => 'Phone number has already been taken.',
+            'email.required' => 'Email is required.',
+            'email.email' => 'Email must be a valid email address.',
+            'email.unique' => 'Email has already been taken.',
         ]);
 
         try {

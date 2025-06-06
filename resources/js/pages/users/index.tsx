@@ -3,14 +3,16 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
-import DetailUserDialog from './components/detail-user-dialog';
 import DeleteUserDialog from './components/delete-user-dialog';
+import DetailUserDialog from './components/detail-user-dialog';
 
 interface IUserTypes {
   id: string;
   name: string;
   email: string;
   created_at: string;
+  updated_at: string;
+  email_verified_at?: string;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -109,6 +111,12 @@ export default function Index({ users }: { users: IUserTypes[] }) {
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-medium tracking-wider text-neutral-500 uppercase dark:text-neutral-400"
                     >
+                      Updated
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium tracking-wider text-neutral-500 uppercase dark:text-neutral-400"
+                    >
                       Actions
                     </th>
                   </tr>
@@ -124,7 +132,22 @@ export default function Index({ users }: { users: IUserTypes[] }) {
                         <div className="text-sm text-neutral-900 dark:text-neutral-100">{user.email}</div>
                       </td>
                       <td className="px-6 py-4 text-sm whitespace-nowrap text-neutral-500 dark:text-neutral-400">
-                        {new Date(user.created_at).toLocaleDateString()}
+                        {new Date(user.created_at).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </td>
+                      <td className="px-6 py-4 text-sm whitespace-nowrap text-neutral-500 dark:text-neutral-400">
+                        {new Date(user.updated_at).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
                       </td>
                       <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
                         <div className="flex space-x-2">
