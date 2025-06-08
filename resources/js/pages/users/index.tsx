@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
+import { useCan } from '@/lib/can';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
@@ -72,18 +73,21 @@ export default function Index({ users }: { users: IUserTypes[] }) {
                 <h3 className="text-lg leading-6 font-semibold text-neutral-900 dark:text-neutral-100">Users</h3>
                 <p className="mt-1 max-w-2xl text-sm text-neutral-500 dark:text-neutral-400">A list of all users in the system.</p>
               </div>
-              <div className="flex px-4 py-5 sm:px-6">
-                <Button
-                  onClick={() => {
-                    router.visit('users/create', {
-                      preserveState: true,
-                      preserveScroll: true,
-                    });
-                  }}
-                >
-                  Create User
-                </Button>
-              </div>
+
+              {useCan('users.create') && (
+                <div className="flex px-4 py-5 sm:px-6">
+                  <Button
+                    onClick={() => {
+                      router.visit('users/create', {
+                        preserveState: true,
+                        preserveScroll: true,
+                      });
+                    }}
+                  >
+                    Create User
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* desktop */}

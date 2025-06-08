@@ -10,11 +10,25 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+
+    // ----- Dashboard Route
     Route::get('dashboard', function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
-    Route::resource('users', UserController::class);
-    Route::resource('roles', RoleController::class);
+    
+
+    // ----- User Management Routes
+    Route::resource('users', UserController::class)->only(['create', 'store'])->middleware('permission:users.create');
+
+    Route::resource('users', UserController::class)->only(['edit', 'update'])->middleware('permission:users.edit');
+
+    Route::resource('users', UserController::class)->only(['destory'])->middleware('permission:users.delete');
+
+    Route::resource('users', UserController::class)->only(['index', 'show'])->middleware('permission:users.view|users.create|users.edit|users.delete');
+
+
+    // ----- Role Management Routes (SUPER_ADMIN ONLY)
+    Route::resource('roles', RoleController::class)->middleware('role:SUPER_ADMIN');
 });
 
 require __DIR__ . '/settings.php';
