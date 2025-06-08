@@ -13,12 +13,15 @@ interface IUser {
   username: string;
   phone?: string;
   email: string;
+  roles: { id: string; name: string }[];
   created_at: string;
   updated_at: string;
 }
 
 interface EditUserProps {
   user: IUser;
+  user_roles: string[];
+  roles: { id: string; name: string }[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -32,13 +35,25 @@ const breadcrumbs: BreadcrumbItem[] = [
   },
 ];
 
-const EditUser = ({ user }: EditUserProps) => {
+const Edit = ({ user, user_roles, roles }: EditUserProps) => {
   const { data, setData, put, processing, errors, reset } = useForm({
     name: user.name || '',
     username: user.username || '',
     phone: user.phone || '',
     email: user.email || '',
+    roles: user_roles || [],
   });
+
+  const handleCheckboxChange = (role: { id: string; name: string }, checked: boolean) => {
+    if (checked) {
+      setData('roles', [...data.roles, role.name]);
+    } else {
+      setData(
+        'roles',
+        data.roles.filter((name: string) => name !== role.name),
+      );
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,6 +170,34 @@ const EditUser = ({ user }: EditUserProps) => {
                   {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
                 </div>
 
+                {/* Roles Field */}
+                <div className="space-y-4">
+                  <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Assign Roles</Label>
+                  <div className="max-h-40 overflow-y-auto rounded-md border border-neutral-200 p-4 dark:border-neutral-700">
+                    <div className="grid gap-3">
+                      {roles.map((role) => (
+                        <div key={role.id} className="flex items-center space-x-3">
+                          <input
+                            type="checkbox"
+                            id={`role-${role.id}`}
+                            value={role.name}
+                            checked={data.roles.includes(role.name)}
+                            onChange={(e) => handleCheckboxChange(role, e.target.checked)}
+                            className="h-4 w-4 rounded border-neutral-300 text-blue-600 focus:ring-blue-500 dark:border-neutral-600 dark:bg-neutral-700 dark:focus:ring-blue-500"
+                          />
+                          <Label htmlFor={`role-${role.id}`} className="cursor-pointer text-sm text-neutral-700 dark:text-neutral-300">
+                            {role.name}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {errors.roles && <p className="text-sm text-red-500">{errors.roles}</p>}
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                    Selected roles: {data.roles.length} of {roles.length}
+                  </p>
+                </div>
+
                 {/* Created At Display */}
                 <div className="flex justify-between space-x-4">
                   <div className="w-full space-y-2">
@@ -208,4 +251,4 @@ const EditUser = ({ user }: EditUserProps) => {
   );
 };
 
-export default EditUser;
+export default Edit;

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\RoleManagement\RoleController;
 use App\Http\Controllers\UserManagement\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -13,6 +14,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
     Route::resource('users', UserController::class);
+    Route::resource('roles', RoleController::class);
 });
 
 require __DIR__ . '/settings.php';

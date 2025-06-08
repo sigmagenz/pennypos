@@ -6,51 +6,47 @@ import { useState } from 'react';
 import DeleteDialog from './components/delete-dialog';
 import DetailDialog from './components/detail-dialog';
 
-interface IRole {
+interface IPermissionType {
   id: string;
   name: string;
 }
 
-interface IUserTypes {
+interface IRoleTypes {
   id: string;
   name: string;
-  username: string;
-  phone?: string;
-  email: string;
+  permissions: IPermissionType[];
   created_at: string;
   updated_at: string;
-  email_verified_at?: string;
-  roles: IRole[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
-    title: 'Users',
-    href: '/users',
+    title: 'Roles',
+    href: '/roles',
   },
 ];
 
-export default function Index({ users }: { users: IUserTypes[] }) {
-  const [showUserDetailDialog, setShowUserDetailDialog] = useState(false);
+export default function Index({ roles }: { roles: IRoleTypes[] }) {
+  const [showRoleDetailDialog, setShowRoleDetailDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<IUserTypes | null>(null);
+  const [selectedRole, setSelectedRole] = useState<IRoleTypes | null>(null);
 
-  const openUserDetailDialog = (user: IUserTypes) => {
-    setSelectedUser(user);
-    setShowUserDetailDialog(true);
+  const openRoleDetailDialog = (role: IRoleTypes) => {
+    setSelectedRole(role);
+    setShowRoleDetailDialog(true);
   };
 
-  const openDeleteDialog = (user: IUserTypes) => {
-    setSelectedUser(user);
+  const openDeleteDialog = (role: IRoleTypes) => {
+    setSelectedRole(role);
     setShowDeleteDialog(true);
   };
 
-  const handleDeleteUser = () => {
-    if (selectedUser) {
-      router.delete(route('users.destroy', selectedUser.id), {
+  const handleDeleteRole = () => {
+    if (selectedRole) {
+      router.delete(route('roles.destroy', selectedRole.id), {
         onSuccess: () => {
           setShowDeleteDialog(false);
-          setSelectedUser(null);
+          setSelectedRole(null);
         },
         onError: (errors) => {
           console.error('Delete failed:', errors);
@@ -61,7 +57,7 @@ export default function Index({ users }: { users: IUserTypes[] }) {
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
-      <Head title="Users" />
+      <Head title="Roles" />
 
       <div className="py-6">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -69,19 +65,19 @@ export default function Index({ users }: { users: IUserTypes[] }) {
             {/* Table Header */}
             <div className="flex justify-between px-4 py-5 sm:p-6">
               <div>
-                <h3 className="text-lg leading-6 font-semibold text-neutral-900 dark:text-neutral-100">Users</h3>
-                <p className="mt-1 max-w-2xl text-sm text-neutral-500 dark:text-neutral-400">A list of all users in the system.</p>
+                <h3 className="text-lg leading-6 font-semibold text-neutral-900 dark:text-neutral-100">Roles</h3>
+                <p className="mt-1 max-w-2xl text-sm text-neutral-500 dark:text-neutral-400">A list of all roles in the system.</p>
               </div>
               <div className="flex px-4 py-5 sm:px-6">
                 <Button
                   onClick={() => {
-                    router.visit('users/create', {
+                    router.visit('roles/create', {
                       preserveState: true,
                       preserveScroll: true,
                     });
                   }}
                 >
-                  Create User
+                  Create Role
                 </Button>
               </div>
             </div>
@@ -107,12 +103,6 @@ export default function Index({ users }: { users: IUserTypes[] }) {
                       scope="col"
                       className="px-6 py-3 text-left text-xs font-medium tracking-wider text-neutral-500 uppercase dark:text-neutral-400"
                     >
-                      Email
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium tracking-wider text-neutral-500 uppercase dark:text-neutral-400"
-                    >
                       Created
                     </th>
                     <th
@@ -130,17 +120,14 @@ export default function Index({ users }: { users: IUserTypes[] }) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-200 bg-white dark:divide-neutral-700 dark:bg-neutral-900">
-                  {users.map((user) => (
-                    <tr key={user.id} className="transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800">
-                      <td className="px-6 py-4 text-sm whitespace-nowrap text-neutral-900 dark:text-neutral-100">{user.id}.</td>
+                  {roles.map((role) => (
+                    <tr key={role.id} className="transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800">
+                      <td className="px-6 py-4 text-sm whitespace-nowrap text-neutral-900 dark:text-neutral-100">{role.id}.</td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-neutral-900 dark:text-neutral-100">{user.name}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-neutral-900 dark:text-neutral-100">{user.email}</div>
+                        <div className="text-sm font-medium text-neutral-900 dark:text-neutral-100">{role.name}</div>
                       </td>
                       <td className="px-6 py-4 text-sm whitespace-nowrap text-neutral-500 dark:text-neutral-400">
-                        {new Date(user.created_at).toLocaleDateString('en-US', {
+                        {new Date(role.created_at).toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'long',
                           day: 'numeric',
@@ -149,7 +136,7 @@ export default function Index({ users }: { users: IUserTypes[] }) {
                         })}
                       </td>
                       <td className="px-6 py-4 text-sm whitespace-nowrap text-neutral-500 dark:text-neutral-400">
-                        {new Date(user.updated_at).toLocaleDateString('en-US', {
+                        {new Date(role.updated_at).toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'long',
                           day: 'numeric',
@@ -160,13 +147,13 @@ export default function Index({ users }: { users: IUserTypes[] }) {
                       <td className="px-6 py-4 text-sm font-medium whitespace-nowrap">
                         <div className="flex space-x-2">
                           <button
-                            onClick={() => openUserDetailDialog(user)}
+                            onClick={() => openRoleDetailDialog(role)}
                             className="text-blue-600 transition-colors hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
                           >
                             View
                           </button>
                           <button
-                            onClick={() => openDeleteDialog(user)}
+                            onClick={() => openDeleteDialog(role)}
                             className="text-red-600 transition-colors hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                           >
                             Delete
@@ -182,25 +169,24 @@ export default function Index({ users }: { users: IUserTypes[] }) {
             {/* mobile */}
             <div className="block lg:hidden">
               <div className="space-y-4 p-4">
-                {users.map((user) => (
-                  <div key={user.id} className="rounded-lg bg-neutral-50 p-4 dark:bg-neutral-800">
+                {roles.map((role) => (
+                  <div key={role.id} className="rounded-lg bg-neutral-50 p-4 dark:bg-neutral-800">
                     <div className="flex items-start justify-between">
                       <div>
-                        <h4 className="text-sm font-medium text-neutral-900 dark:text-neutral-100">{user.name}</h4>
-                        <p className="text-sm text-neutral-500 dark:text-neutral-400">{user.email}</p>
+                        <h4 className="text-sm font-medium text-neutral-900 dark:text-neutral-100">{role.name}</h4>
                         <p className="mt-1 text-xs text-neutral-400 dark:text-neutral-500">
-                          Created: {new Date(user.created_at).toLocaleDateString()}
+                          Created: {new Date(role.created_at).toLocaleDateString()}
                         </p>
                       </div>
                       <div className="flex flex-col space-y-1">
                         <button
-                          onClick={() => openUserDetailDialog(user)}
+                          onClick={() => openRoleDetailDialog(role)}
                           className="text-xs text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
                         >
                           View
                         </button>
                         <button
-                          onClick={() => openDeleteDialog(user)}
+                          onClick={() => openDeleteDialog(role)}
                           className="text-xs text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                         >
                           Delete
@@ -216,9 +202,9 @@ export default function Index({ users }: { users: IUserTypes[] }) {
       </div>
 
       {/* Dialogs */}
-      <DetailDialog open={showUserDetailDialog} onOpenChange={setShowUserDetailDialog} user={selectedUser} />
+      <DetailDialog open={showRoleDetailDialog} onOpenChange={setShowRoleDetailDialog} role={selectedRole} />
 
-      <DeleteDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog} user={selectedUser} onConfirm={handleDeleteUser} />
+      <DeleteDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog} role={selectedRole} onConfirm={handleDeleteRole} />
     </AppLayout>
   );
 }

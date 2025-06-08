@@ -9,14 +9,14 @@ interface IUser {
   created_at: string;
 }
 
-interface IDeleteUserDialogProps {
+interface IDeleteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user: IUser | null;
   onConfirm: () => void;
 }
 
-const DeleteUserDialog = ({ open, onOpenChange, user, onConfirm }: IDeleteUserDialogProps) => {
+const DeleteDialog = ({ open, onOpenChange, user, onConfirm }: IDeleteDialogProps) => {
   if (!user) return null;
 
   const handleDelete = () => {
@@ -68,4 +68,4 @@ const DeleteUserDialog = ({ open, onOpenChange, user, onConfirm }: IDeleteUserDi
   );
 };
 
-export default DeleteUserDialog;
+export default DeleteDialog;

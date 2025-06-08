@@ -8,18 +8,21 @@ interface IUser {
   id: string;
   name: string;
   email: string;
+  roles: { id: string; name: string }[];
+  phone?: string;
+  username?: string;
   created_at: string;
   updated_at?: string;
   email_verified_at?: string;
 }
 
-interface IDetailUserDialogType {
+interface IDetailDialogType {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user: IUser | null;
 }
 
-const DetailUserDialog = ({ open, onOpenChange, user }: IDetailUserDialogType) => {
+const DetailDialog = ({ open, onOpenChange, user }: IDetailDialogType) => {
   if (!user) return null;
 
   const formatDate = (dateString: string) => {
@@ -80,6 +83,18 @@ const DetailUserDialog = ({ open, onOpenChange, user }: IDetailUserDialogType) =
               <div className="flex-1">
                 <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300">User ID</p>
                 <p className="text-base text-neutral-900 dark:text-neutral-100">{user.id}</p>
+              </div>
+            </div>
+            <div className="flex flex-col gap-3">
+              <p className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Assigned Roles</p>
+              <div className="flex flex-wrap gap-2">
+                {user.roles.map((role) => {
+                  return (
+                    <Badge key={role.id} variant="outline" className="px-2 py-1 text-xs">
+                      {role.name}
+                    </Badge>
+                  );
+                })}
               </div>
             </div>
           </div>
@@ -150,4 +165,4 @@ const DetailUserDialog = ({ open, onOpenChange, user }: IDetailUserDialogType) =
   );
 };
 
-export default DetailUserDialog;
+export default DetailDialog;

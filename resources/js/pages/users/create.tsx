@@ -7,6 +7,11 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { ArrowLeft } from 'lucide-react';
 
+interface IRole {
+  id: string;
+  name: string;
+}
+
 const breadcrumbs: BreadcrumbItem[] = [
   {
     title: 'Users',
@@ -18,15 +23,35 @@ const breadcrumbs: BreadcrumbItem[] = [
   },
 ];
 
-const CreateUser = () => {
+const Create = ({ roles }: { roles: IRole[] }) => {
   const { data, setData, post, processing, errors, reset } = useForm({
     name: '',
     username: '',
     phone: '',
     email: '',
+    roles: [],
     password: '',
     password_confirmation: '',
+  } as {
+    name: string;
+    username: string;
+    phone?: string;
+    email: string;
+    roles: string[];
+    password: string;
+    password_confirmation: string;
   });
+
+  const handleCheckboxChange = (role: IRole, checked: boolean) => {
+    if (checked) {
+      setData('roles', [...data.roles, role.name]);
+    } else {
+      setData(
+        'roles',
+        data.roles.filter((name: string) => name !== role.name),
+      );
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,6 +157,33 @@ const CreateUser = () => {
                   {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
                 </div>
 
+                {/* Roles Field */}
+                <div className="space-y-4">
+                  <Label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Assign Roles</Label>
+                  <div className="max-h-40 overflow-y-auto rounded-md border border-neutral-200 p-4 dark:border-neutral-700">
+                    <div className="grid gap-3">
+                      {roles.map((role) => (
+                        <div key={role.id} className="flex items-center space-x-3">
+                          <input
+                            type="checkbox"
+                            id={`role-${role.id}`}
+                            value={role.name}
+                            onChange={(e) => handleCheckboxChange(role, e.target.checked)}
+                            className="h-4 w-4 rounded border-neutral-300 text-blue-600 focus:ring-blue-500 dark:border-neutral-600 dark:bg-neutral-700 dark:focus:ring-blue-500"
+                          />
+                          <Label htmlFor={`role-${role.id}`} className="cursor-pointer text-sm text-neutral-700 dark:text-neutral-300">
+                            {role.name}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {errors.roles && <p className="text-sm text-red-500">{errors.roles}</p>}
+                  <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                    Selected roles: {data.roles.length} of {roles.length}
+                  </p>
+                </div>
+
                 {/* Password Field */}
                 <div className="space-y-2">
                   <Label htmlFor="password" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
@@ -187,4 +239,4 @@ const CreateUser = () => {
   );
 };
 
-export default CreateUser;
+export default Create;

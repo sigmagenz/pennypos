@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
@@ -17,7 +18,7 @@ class UserController extends Controller
     public function index()
     {
         // Fetch users from the model except the authenticated user
-        $users = User::where('id', '!=', Auth::id())
+        $users = User::with("roles")->where('id', '!=', Auth::id())
             ->latest()
             ->get(['id', 'name', 'username', 'phone', 'email', 'created_at', 'updated_at']);
 
@@ -32,7 +33,9 @@ class UserController extends Controller
      */
     public function create()
     {
-        return Inertia::render('users/create-user');
+        return Inertia::render('users/create', [
+            'roles' => Role::where('name', '!=', 'SUPER_ADMIN')->get(['id', 'name']),
+        ]);
     }
 
     /**
@@ -47,6 +50,7 @@ class UserController extends Controller
             'phone' => 'nullable|string|max:20|unique:users',
             'email' => 'required|string|email|max:60|unique:users',
             'password' => 'required|string|min:6|confirmed',
+            'roles' => 'required',
         ], [
             'name.required' => 'Name is required.',
             'username.required' => 'Username is required.',
@@ -58,16 +62,19 @@ class UserController extends Controller
             'password.required' => 'Password is required.',
             'password.min' => 'Password must be at least 6 characters.',
             'password.confirmed' => 'Password confirmation does not match.',
+            'roles.required' => 'At least one role is required.',
         ]);
 
         // Create a new user
-        User::create([
+        $user = User::create([
             'name' => $validatedData['name'],
             'username' => $validatedData['username'],
             'phone' => $validatedData['phone'],
             'email' => $validatedData['email'],
             'password' => bcrypt($validatedData['password']),
         ]);
+
+        $user->syncRoles($request->roles);
 
         // Redirect or return a response
         return redirect()->route('users.index')->with('success', 'User created successfully.');
@@ -78,7 +85,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        return Inertia::render('users/show', [
+        return Inertia::render('users/detail', [
             'user' => $user->only(['id', 'name', 'username', 'phone', 'email', 'created_at', 'updated_at']),
         ]);
     }
@@ -86,10 +93,15 @@ class UserController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(User $user)
+    public function edit(string $id)
     {
-        return Inertia::render('users/edit-user', [
-            'user' => $user->only(['id', 'name', 'username', 'phone', 'email', 'created_at', 'updated_at']),
+        $user = User::findOrFail($id);
+        $roles = Role::where('name', '!=', 'SUPER_ADMIN')->get(['id', 'name']);
+
+        return Inertia::render('users/edit', [
+            'user' => $user,
+            'user_roles' => $user->roles->pluck('name')->toArray(),
+            'roles' => $roles,
         ]);
     }
 
@@ -103,6 +115,7 @@ class UserController extends Controller
             'username' => ['required', 'string', 'max:255', 'unique:users,username,' . $user->id],
             'phone' => ['nullable', 'string', 'max:20', 'unique:users,phone,' . $user->id],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'roles' => ['required'],
         ], [
             'name.required' => 'Name is required.',
             'username.required' => 'Username is required.',
@@ -111,10 +124,15 @@ class UserController extends Controller
             'email.required' => 'Email is required.',
             'email.email' => 'Email must be a valid email address.',
             'email.unique' => 'Email has already been taken.',
+            'roles.required' => 'At least one role is required.',
         ]);
 
         try {
             $user->update($validatedData);
+
+            if (isset($validatedData['roles'])) {
+                $user->syncRoles($validatedData['roles']);
+            }
 
             return redirect()
                 ->route('users.index')
